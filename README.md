@@ -61,9 +61,8 @@ To use Flow Studio on the Edit Page:
 
 ---
 ## Screenshots 
-/Screenshots/cruve.png
-/Screenshots/presets.png
-
+[/Screenshots/cruve.png](https://github.com/user-attachments/assets/a777f07b-835d-4353-8f1f-f4177db0b924)
+"https://github.com/user-attachments/assets/92ec77f7-98de-40fc-8b07-550eb8f4f03d"
 --
 ## Keyboard Shortcuts
 
