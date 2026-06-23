@@ -1,5 +1,4 @@
-<img width="497" height="720" alt="presets" src="https://github.com/user-attachments/assets/3f101bf1-8103-4aa2-95d8-04b87e6c5af7" />
-<img width="499" height="717" alt="curve" src="https://github.com/user-attachments/assets/ea705a93-2fd2-4995-ba0a-daee870c2e70" />
+
 # Flow Studio for DaVinci Resolve
 
 **Flow Studio** is a minimal DaVinci Resolve Workflow Integration plugin designed for video editors. Flow Studio brings smooth easing curve adjustments, visual spline editing, and instant keyframe management directly inside the DaVinci Resolve Fusion and Edit pages.
