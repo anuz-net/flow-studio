@@ -1,6 +1,6 @@
 # Flow Studio for DaVinci Resolve
 
-**Flow Studio** is a premium, minimal, black-and-white DaVinci Resolve Workflow Integration plugin designed for motion designers and video editors. Inspired by modern high-end animation utilities, Flow Studio brings smooth easing curve adjustments, visual spline editing, and instant keyframe management directly inside the DaVinci Resolve Fusion and Edit pages.
+**Flow Studio** is a minimal DaVinci Resolve Workflow Integration plugin designed for video editors. Flow Studio brings smooth easing curve adjustments, visual spline editing, and instant keyframe management directly inside the DaVinci Resolve Fusion and Edit pages.
 
 ---
 
@@ -20,12 +20,15 @@
 ---
 
 ## Installation & Setup
+0. **Make Sure Python is Installed**
 
 1. **Copy to Plugins Directory**:
    Copy the `FlowStudio` folder into DaVinci Resolve's Workflow Integration folder:
-   - **Windows**: `%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\`
-     *(Equivalent to `C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\`)*
-   - **macOS**: `/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/`
+   - **Windows**: ```%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\```
+     *(Equivalent to ```C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\```)*
+     Make a Folder name 'WorkFlow Integration Pluigns' if no such Folder
+   - **macOS**: ```/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/```
+   
 
 2. **Enable External Scripting in Resolve**:
    - Open DaVinci Resolve.
