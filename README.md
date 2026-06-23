@@ -60,7 +60,11 @@ To use Flow Studio on the Edit Page:
 4. Check the desired keyframe segments in the list and click any preset or apply a custom curve!
 
 ---
+## Screenshots 
+/screenshots/cruve.png
+/screenshots/preset.png
 
+--
 ## Keyboard Shortcuts
 
 The following shortcuts are active when the Flow Studio panel is focused:
