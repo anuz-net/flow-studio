@@ -1,0 +1,654 @@
+/* Global Reset & Typography */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #000000;
+    color: #FFFFFF;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 14px;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #000000;
+}
+::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #FFFFFF;
+}
+
+/* Layout Structure */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    border: 1px solid #333333;
+}
+
+/* Header & Tabs */
+.app-header {
+    background-color: #111111;
+    border-bottom: 1px solid #333333;
+    padding: 12px 16px 0 16px;
+}
+
+.logo-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-style: italic;
+    color: #FFFFFF;
+}
+
+.tab-nav {
+    display: flex;
+    gap: 16px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #B5B5B5;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 0 10px 0;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.nav-btn:hover {
+    color: #FFFFFF;
+}
+
+.nav-btn.active {
+    color: #FFFFFF;
+}
+
+.nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #FFFFFF;
+}
+
+/* Content Panel */
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #000000;
+    padding: 16px;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* Preset Cards */
+.preset-category {
+    margin-bottom: 24px;
+}
+
+.category-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #B5B5B5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #1A1A1A;
+    padding-bottom: 4px;
+}
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.preset-card {
+    background-color: #1A1A1A;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+}
+
+.preset-card:hover {
+    background-color: #111111;
+    border-color: #FFFFFF;
+}
+
+.preset-card.selected {
+    background-color: #111111;
+    border-color: #FFFFFF;
+}
+
+.preset-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 8px;
+}
+
+.preset-label {
+    font-size: 11px;
+    color: #B5B5B5;
+    transition: color 0.2s ease;
+}
+
+.preset-card:hover .preset-label,
+.preset-card.selected .preset-label {
+    color: #FFFFFF;
+}
+
+/* Custom Presets */
+.no-presets-msg {
+    grid-column: span 3;
+    text-align: center;
+    color: #B5B5B5;
+    font-style: italic;
+    padding: 16px 0;
+    font-size: 12px;
+}
+
+.custom-presets-section .preset-card {
+    position: relative;
+}
+
+.delete-preset-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    color: #B5B5B5;
+    font-size: 10px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    padding: 2px;
+}
+
+.preset-card:hover .delete-preset-btn {
+    opacity: 1;
+}
+
+.delete-preset-btn:hover {
+    color: #FFFFFF;
+}
+
+/* Curve Editor View */
+.editor-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.canvas-container {
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 8px;
+    width: 300px;
+    height: 300px;
+    position: relative;
+    cursor: crosshair;
+}
+
+#curve-canvas {
+    display: block;
+}
+
+/* Timing Preview */
+.preview-panel {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.preview-label {
+    font-size: 11px;
+    color: #B5B5B5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preview-track {
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    height: 16px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-dot {
+    background-color: #FFFFFF;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: 2px;
+    left: 0;
+}
+
+/* Coordinates Panel */
+.coordinates-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.coord-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.coord-group label {
+    font-size: 10px;
+    color: #B5B5B5;
+    text-transform: uppercase;
+}
+
+.coord-group input {
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 12px;
+    padding: 6px;
+    width: 100%;
+    text-align: center;
+}
+
+.coord-group input:focus {
+    outline: none;
+    border-color: #FFFFFF;
+}
+
+/* Save Custom Preset Form */
+.save-preset-form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.save-preset-form input {
+    flex: 1;
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 12px;
+    padding: 8px;
+}
+
+.save-preset-form input:focus {
+    outline: none;
+    border-color: #FFFFFF;
+}
+
+/* Action Buttons */
+.action-btn {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.primary-btn {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 1px solid #FFFFFF;
+    width: 100%;
+    max-width: 300px;
+}
+
+.primary-btn:hover {
+    background-color: #111111;
+    color: #FFFFFF;
+    border-color: #FFFFFF;
+}
+
+.secondary-btn {
+    background-color: #111111;
+    color: #FFFFFF;
+    border: 1px solid #333333;
+}
+
+.secondary-btn:hover {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+
+/* Settings View */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.setting-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.setting-help {
+    font-size: 11px;
+    color: #B5B5B5;
+}
+
+.setting-group input {
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 12px;
+    padding: 8px;
+    width: 100%;
+}
+
+.setting-group input:focus {
+    outline: none;
+    border-color: #FFFFFF;
+}
+
+.help-section {
+    border-top: 1px solid #1A1A1A;
+    padding-top: 16px;
+}
+
+.help-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #B5B5B5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.help-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.help-list li {
+    font-size: 12px;
+    color: #B5B5B5;
+    position: relative;
+    padding-left: 14px;
+}
+
+.help-list li::before {
+    content: '▪';
+    color: #FFFFFF;
+    position: absolute;
+    left: 0;
+    top: -1px;
+}
+
+.help-list strong {
+    color: #FFFFFF;
+}
+
+/* Footer / Toolbar */
+.app-toolbar {
+    background-color: #111111;
+    border-top: 1px solid #333333;
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+}
+
+.tool-btn {
+    flex: 1;
+    background-color: #1A1A1A;
+    border: 1px solid #333333;
+    color: #B5B5B5;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    text-align: center;
+}
+
+.tool-btn:hover {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 60px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.toast {
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+    border: 1px solid #333333;
+    border-left: 3px solid #FFFFFF;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: toast-in 0.3s forwards, toast-out 0.3s 3.7s forwards;
+    pointer-events: auto;
+}
+
+.toast.error {
+    border-left-color: #FFFFFF; /* Black and White constraint */
+    background-color: #000000;
+    border: 1px solid #FFFFFF;
+}
+
+@keyframes toast-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toast-out {
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Keyframe Segments Section */
+.segments-section {
+    background-color: #111111;
+    border-top: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    flex-shrink: 0;
+}
+
+.segments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.apply-all-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+
+.apply-all-label input[type="checkbox"] {
+    accent-color: #FFFFFF;
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+}
+
+.sync-btn {
+    background-color: #1A1A1A;
+    border: 1px solid #333333;
+    color: #FFFFFF;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sync-btn:hover {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #FFFFFF;
+}
+
+.segments-list-container {
+    max-height: 80px;
+    overflow-y: auto;
+    background-color: #000000;
+    border: 1px solid #222222;
+    border-radius: 4px;
+    padding: 6px;
+}
+
+.segments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.segment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #B5B5B5;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.segment-item:hover {
+    color: #FFFFFF;
+}
+
+.segment-item input[type="checkbox"] {
+    accent-color: #FFFFFF;
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+}
+
+.segment-item.checked {
+    color: #FFFFFF;
+}
+
+.no-segments-msg {
+    color: #666666;
+    font-size: 11px;
+    font-style: italic;
+    text-align: center;
+    padding: 6px 0;
+}
+
+/* Settings Credit Footer */
+.settings-footer {
+    margin-top: 40px;
+    text-align: center;
+    border-top: 1px solid #1A1A1A;
+    padding-top: 20px;
+}
+
+.settings-credit {
+    font-size: 13px;
+    font-weight: 500;
+    color: #FFFFFF;
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.settings-tagline {
+    font-size: 11px;
+    color: #B5B5B5;
+    letter-spacing: 0.5px;
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow Studio</title>
+    <!-- Google Fonts: Source Serif 4 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header / Navigation -->
+        <header class="app-header">
+            <h1 class="logo-title">Flow Studio</h1>
+            <nav class="tab-nav">
+                <button class="nav-btn active" data-tab="presets-tab" id="tab-presets">Presets</button>
+                <button class="nav-btn" data-tab="editor-tab" id="tab-editor">Curve Editor</button>
+                <button class="nav-btn" data-tab="settings-tab" id="tab-settings">Settings</button>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <!-- TAB 1: PRESETS -->
+            <section id="presets-tab" class="tab-panel active">
+                <div class="preset-category">
+                    <h2 class="category-title">Smooth</h2>
+                    <div class="preset-grid">
+                        <div class="preset-card" data-bezier="0.42,0,1,1" data-preset="smooth_in" id="preset-smooth-in">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 42 90, 100 90, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Smooth In</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0,0,0.58,1" data-preset="smooth_out" id="preset-smooth-out">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 10 10, 58 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Smooth Out</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.42,0,0.58,1" data-preset="smooth_in_out" id="preset-smooth-in-out">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 42 90, 58 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Smooth In-Out</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preset-category">
+                    <h2 class="category-title">Motion</h2>
+                    <div class="preset-grid">
+                        <div class="preset-card" data-bezier="0.6,-0.28,0.735,0.045" data-preset="ease_back" id="preset-ease-back">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 60 110, 73.5 86, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Ease Back</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.34,1.56,0.64,1" data-preset="overshoot" id="preset-overshoot">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 34 20, 64 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Overshoot</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.175,0.885,0.32,1.275" data-preset="bounce" id="preset-bounce">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 17.5 30, 32 -10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Bounce</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.5,-0.5,0.5,1.5" data-preset="elastic" id="preset-elastic">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 50 120, 50 -20, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Elastic</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preset-category">
+                    <h2 class="category-title">Cinematic</h2>
+                    <div class="preset-grid">
+                        <div class="preset-card" data-bezier="0.15,0.85,0.35,1" data-preset="slow_reveal" id="preset-slow-reveal">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 15 35, 35 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Slow Reveal</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.25,0.1,0.25,1" data-preset="soft_zoom" id="preset-soft-zoom">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 25 80, 25 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Soft Zoom</span>
+                        </div>
+                        <div class="preset-card" data-bezier="0.7,0,0.1,1" data-preset="dramatic_movement" id="preset-dramatic-movement">
+                            <svg class="preset-icon" viewBox="0 0 100 100">
+                                <path d="M 10 90 C 70 90, 10 10, 90 10" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+                            </svg>
+                            <span class="preset-label">Dramatic</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preset-category custom-presets-section">
+                    <h2 class="category-title">Custom Presets</h2>
+                    <div class="preset-grid" id="custom-presets-list">
+                        <!-- Custom presets added here dynamically -->
+                        <div class="no-presets-msg" id="no-custom-presets-msg">No custom presets saved.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: CURVE EDITOR -->
+            <section id="editor-tab" class="tab-panel">
+                <div class="editor-layout">
+                    <!-- Interactive Canvas Container -->
+                    <div class="canvas-container">
+                        <canvas id="curve-canvas" width="300" height="300"></canvas>
+                    </div>
+
+                    <!-- Timing Preview -->
+                    <div class="preview-panel">
+                        <span class="preview-label">Timing Preview</span>
+                        <div class="preview-track">
+                            <div class="preview-dot" id="animation-dot"></div>
+                        </div>
+                    </div>
+
+                    <!-- Coordinates Input -->
+                    <div class="coordinates-panel">
+                        <div class="coord-group">
+                            <label for="x1-input">P1.X</label>
+                            <input type="number" id="x1-input" min="0" max="1" step="0.01" value="0.42">
+                        </div>
+                        <div class="coord-group">
+                            <label for="y1-input">P1.Y</label>
+                            <input type="number" id="y1-input" min="-1" max="2" step="0.01" value="0.00">
+                        </div>
+                        <div class="coord-group">
+                            <label for="x2-input">P2.X</label>
+                            <input type="number" id="x2-input" min="0" max="1" step="0.01" value="0.58">
+                        </div>
+                        <div class="coord-group">
+                            <label for="y2-input">P2.Y</label>
+                            <input type="number" id="y2-input" min="-1" max="2" step="0.01" value="1.00">
+                        </div>
+                    </div>
+
+                    <!-- Save Preset Form -->
+                    <div class="save-preset-form">
+                        <input type="text" id="preset-name-input" placeholder="Preset Name (e.g. My Smooth Camera)" maxlength="30">
+                        <button class="action-btn secondary-btn" id="btn-save-custom">Save Preset</button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="editor-actions">
+                        <button class="action-btn primary-btn" id="btn-apply-curve">Apply Curve</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: SETTINGS -->
+            <section id="settings-tab" class="tab-panel">
+                <div class="settings-form">
+                    <div class="setting-group">
+                        <label class="setting-label" for="python-path-input">Python Executable Path</label>
+                        <p class="setting-help">Specify your Python 3 binary path if the default "python" command fails.</p>
+                        <input type="text" id="python-path-input" placeholder="python" value="python">
+                    </div>
+                    <button class="action-btn primary-btn" id="btn-save-settings">Save Settings</button>
+                </div>
+                <div class="settings-footer">
+                    <p class="settings-credit">made by anuz</p>
+                    <p class="settings-tagline">Free Forever . For the community</p>
+                </div>
+            </section>
+         </main>
+
+        <!-- Keyframe Segments Selector Panel -->
+        <section class="segments-section">
+            <div class="segments-header">
+                <label class="apply-all-label">
+                    <input type="checkbox" id="chk-apply-all" checked>
+                    <span>Apply to All</span>
+                </label>
+                <button class="sync-btn" id="btn-sync-node" title="Sync keyframe segments from Resolve">Sync Node</button>
+            </div>
+            <div class="segments-list-container">
+                <div class="segments-list" id="segments-list">
+                    <div class="no-segments-msg">No active keyframe segments. Click Sync Node to load.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Toolbar / Keyframe Tools -->
+        <footer class="app-toolbar">
+            <button class="tool-btn" id="tool-copy" title="Copy Keyframe Animation (Ctrl+C)">Copy</button>
+            <button class="tool-btn" id="tool-paste" title="Paste Keyframe Animation (Ctrl+V)">Paste</button>
+            <button class="tool-btn" id="tool-reverse" title="Reverse Animation Sequence">Reverse</button>
+            <button class="tool-btn" id="tool-mirror" title="Mirror Vertically">Mirror</button>
+            <button class="tool-btn" id="tool-reset" title="Reset Interpolation to Linear (R)">Reset</button>
+        </footer>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

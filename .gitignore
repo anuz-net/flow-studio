@@ -1,0 +1,18 @@
+# Dependency directories
+node_modules/
+
+# User configurations & temporary cache files
+Config/settings.json
+Config/selected_segments.json
+Config/clipboard.json
+
+# Python cache
+**/__pycache__/
+*.pyc
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

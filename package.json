@@ -1,0 +1,14 @@
+{
+  "name": "flow-studio",
+  "version": "1.0.0",
+  "description": "Visual easing curve editor and preset manager for DaVinci Resolve",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Anuz",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^25.0.0"
+  }
+}
