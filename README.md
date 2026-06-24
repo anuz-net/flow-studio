@@ -30,8 +30,8 @@ Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29
 1. **Copy to Plugins Directory**:
    Copy the `FlowStudio` folder into DaVinci Resolve's Workflow Integration folder:
    - **Windows**: ```%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\```
-     *(Equivalent to ```C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\```)*
-    if no such Folder Make a Folder, 'Workflow Integration Pluigns' 
+     *(Equivalent to ```C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\```)* <br>
+        if no such Folder Make a Folder, 'Workflow Integration Pluigns' 
    - **macOS**: ```/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/```
    
 
