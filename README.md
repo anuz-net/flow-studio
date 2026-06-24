@@ -1,4 +1,4 @@
-Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29273293/FlowStudio_Release.zip)
+
 
 # Flow Studio for DaVinci Resolve
 
@@ -22,6 +22,9 @@ Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29
 ---
 
 ## Installation & Setup
+
+Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29273293/FlowStudio_Release.zip)
+
 0. **Make Sure Python is Installed**
 
 1. **Copy to Plugins Directory**:
