@@ -54,6 +54,7 @@ To animate a clip on the Edit Page, you have two options:
 4. Select the segments in the checklist and click any preset card to apply easing.
 ---
 ## Screenshots 
+<img width="418" height="804" alt="v0 1 1" src="https://github.com/user-attachments/assets/d4385a32-59d6-4f33-8811-a07232e8f8ad" />
 <img width="497" height="720" alt="presets" src="https://github.com/user-attachments/assets/e3df9381-5ee2-475e-a20f-439d347df36c" />
 <img width="499" height="717" alt="curve" src="https://github.com/user-attachments/assets/aff0c5b4-932a-42da-8311-a51261852f9f" />
 
