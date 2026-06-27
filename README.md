@@ -11,7 +11,7 @@
 Download : [FlowStudiov0.1.1.zip ](https://github.com/user-attachments/files/29409419/FlowStudiov0.1.1.zip)
 
 
-0. **Make Sure Python is Installed **  https://www.python.org/downloads/
+0. **Make Sure Python is Installed** <br> https://www.python.org/downloads/
 
 1. **Copy to Plugins Directory**:
    Copy the `FlowStudio` folder into DaVinci Resolve's Workflow Integration folder:
