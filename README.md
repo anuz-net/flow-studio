@@ -16,10 +16,10 @@ Download : [FlowStudiov0.1.1.zip ](https://github.com/user-attachments/files/294
 1. **Copy to Plugins Directory**:
    Copy the `FlowStudio` folder into DaVinci Resolve's Workflow Integration folder:
    - **Windows**: `%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\`
-     *(Equivalent to `C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\`)* <br><br>
-     *If the `Workflow Integration Plugins` folder doesn't exist, create it manually.* <br>
-   - **macOS**: `/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/` <br><br>
-       *If the `Workflow Integration Plugins` folder doesn't exist, create it manually.* <br>
+     *(Equivalent to `C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Workflow Integration Plugins\`)* <br>
+     *If the `Workflow Integration Plugins` folder doesn't exist, create it manually.* <br><br>
+   - **macOS**: `/Library/Application Support/Blackmagic Design/DaVinci Resolve/Workflow Integration Plugins/` <br>
+       *If the `Workflow Integration Plugins` folder doesn't exist, create it manually.* <br><br>
 2. **Enable External Scripting in Resolve**:
    - Open DaVinci Resolve.
    - Open **Preferences > System > General**.
