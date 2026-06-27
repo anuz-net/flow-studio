@@ -23,7 +23,8 @@
 
 ## Installation & Setup
 
-Download : [FlowStudio_Release.zip](https://github.com/user-attachments/files/29273293/FlowStudio_Release.zip)
+Download : [FlowStudiov0.1.1.zip Download](https://github.com/user-attachments/files/29409419/FlowStudiov0.1.1.zip)
+
 
 0. **Make Sure Python is Installed**
 
@@ -70,14 +71,6 @@ To use Flow Studio on the Edit Page:
 <img width="499" height="717" alt="curve" src="https://github.com/user-attachments/assets/aff0c5b4-932a-42da-8311-a51261852f9f" />
 
 --
-## Keyboard Shortcuts
-
-The following shortcuts are active when the Flow Studio panel is focused:
-
-- **Apply Curve**: `Ctrl + Enter`
-- **Copy Animation**: `Ctrl + C`
-- **Paste Animation**: `Ctrl + V`
-- **Reset Curve**: `R`
 
 ---
 
