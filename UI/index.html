@@ -104,6 +104,56 @@
                     </div>
                 </div>
 
+                <div class="preset-category quick-animate-section" id="quick-animate-section">
+                    <h2 class="category-title">Quick Animations (Edit Page)</h2>
+                    <div class="disclaimer-card">
+                        <span class="disclaimer-icon">ⓘ</span>
+                        <span class="disclaimer-text">Resolve's API does not expose standard Edit page Inspector keyframes. Flow Studio automatically creates a Fusion effect as a bridge to animate your clips.</span>
+                    </div>
+                    <div class="quick-animate-grid">
+                        <div class="quick-animate-row">
+                            <span class="row-label">Zoom</span>
+                            <div class="inputs-row">
+                                <input type="number" id="zoom-v1" value="1.0" step="0.05" placeholder="1.0" title="Start Scale">
+                                <span class="arrow-sep">→</span>
+                                <input type="number" id="zoom-v2" value="1.2" step="0.05" placeholder="1.2" title="End Scale">
+                                <span class="dur-sep">|</span>
+                                <input type="number" id="zoom-dur" value="1.0" step="0.1" placeholder="1.0" title="Duration (Seconds) - 0 for full clip" class="dur-input">
+                                <span class="dur-unit">s</span>
+                            </div>
+                            <button class="quick-btn" id="btn-quick-zoom" title="Create Zoom Animation">+ Animate</button>
+                        </div>
+                        <div class="quick-animate-row">
+                            <span class="row-label">Position</span>
+                            <div class="inputs-row">
+                                <input type="number" id="pos-v1" value="0.5" step="0.05" placeholder="0.5" title="Start X Position">
+                                <span class="arrow-sep">→</span>
+                                <input type="number" id="pos-v2" value="0.6" step="0.05" placeholder="0.6" title="End X Position">
+                                <span class="dur-sep">|</span>
+                                <input type="number" id="pos-dur" value="1.0" step="0.1" placeholder="1.0" title="Duration (Seconds) - 0 for full clip" class="dur-input">
+                                <span class="dur-unit">s</span>
+                            </div>
+                            <button class="quick-btn" id="btn-quick-pos" title="Create Slide Position Animation">+ Animate</button>
+                        </div>
+                        <div class="quick-animate-row">
+                            <span class="row-label">Rotation</span>
+                            <div class="inputs-row">
+                                <input type="number" id="rot-v1" value="0" step="5" placeholder="0" title="Start Angle (deg)">
+                                <span class="arrow-sep">→</span>
+                                <input type="number" id="rot-v2" value="15" step="5" placeholder="15" title="End Angle (deg)">
+                                <span class="dur-sep">|</span>
+                                <input type="number" id="rot-dur" value="1.0" step="0.1" placeholder="1.0" title="Duration (Seconds) - 0 for full clip" class="dur-input">
+                                <span class="dur-unit">s</span>
+                            </div>
+                            <button class="quick-btn" id="btn-quick-rot" title="Create Rotation Animation">+ Animate</button>
+                        </div>
+                    </div>
+                    <div class="disclaimer-card tip-card" style="margin-top: 10px; margin-bottom: 0;">
+                        <span class="disclaimer-icon">💡</span>
+                        <span class="disclaimer-text"><strong>Tip:</strong> You can customize or change the animation path/values further by opening the clip inside the Fusion page.</span>
+                    </div>
+                </div>
+
                 <div class="preset-category custom-presets-section">
                     <h2 class="category-title">Custom Presets</h2>
                     <div class="preset-grid" id="custom-presets-list">
@@ -188,6 +238,13 @@
                 </label>
                 <button class="sync-btn" id="btn-sync-node" title="Sync keyframe segments from Resolve">Sync Node</button>
             </div>
+
+            <!-- Active Page & Clip Status -->
+            <div class="clip-status-bar" id="clip-status-bar">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-text" id="status-text">Connecting to Resolve...</span>
+            </div>
+
             <div class="segments-list-container">
                 <div class="segments-list" id="segments-list">
                     <div class="no-segments-msg">No active keyframe segments. Click Sync Node to load.</div>

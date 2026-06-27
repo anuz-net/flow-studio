@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initToolbarEvents();
     initShortcutEvents();
     initSegmentsEvents();
+    initQuickAnimateEvents();
     
     // Load Settings and Custom Presets from main process
     try {
@@ -60,6 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateEditorFromState();
     startAnimationPreview();
     syncSegments();
+    startStatusPolling();
 });
 
 // Toast Notifications
@@ -652,64 +654,220 @@ async function syncSegments() {
     
     try {
         const response = await window.flowStudioAPI.getKeyframeSegments();
-        if (response && response.status === 'success' && response.segments && response.segments.length > 0) {
-            listContainer.innerHTML = '';
-            
-            response.segments.forEach(param => {
-                const toolName = param.tool_name;
-                const paramId = param.param_id;
-                const paramName = param.param_name;
+        if (response && response.status === 'success') {
+            if (response.segments && response.segments.length > 0) {
+                listContainer.innerHTML = '';
                 
-                param.segments.forEach((seg, idx) => {
-                    const item = document.createElement('label');
-                    item.className = 'segment-item checked';
+                response.segments.forEach(param => {
+                    const toolName = param.tool_name;
+                    const paramId = param.param_id;
+                    const paramName = param.param_name;
                     
-                    const chk = document.createElement('input');
-                    chk.type = 'checkbox';
-                    chk.className = 'segment-checkbox';
-                    chk.checked = true;
-                    chk.dataset.tool = toolName;
-                    chk.dataset.paramId = paramId;
-                    chk.dataset.start = seg.start;
-                    chk.dataset.end = seg.end;
-                    
-                    chk.addEventListener('change', () => {
-                        if (chk.checked) {
-                            item.classList.add('checked');
-                        } else {
-                            item.classList.remove('checked');
-                        }
+                    param.segments.forEach((seg, idx) => {
+                        const item = document.createElement('label');
+                        item.className = 'segment-item checked';
                         
-                        // Update Apply to All master checkbox
-                        const chkApplyAll = document.getElementById('chk-apply-all');
-                        if (chkApplyAll) {
-                            const allCheckboxes = document.querySelectorAll('.segment-checkbox');
-                            const allChecked = Array.from(allCheckboxes).every(c => c.checked);
-                            chkApplyAll.checked = allChecked;
-                        }
+                        const chk = document.createElement('input');
+                        chk.type = 'checkbox';
+                        chk.className = 'segment-checkbox';
+                        chk.checked = true;
+                        chk.dataset.tool = toolName;
+                        chk.dataset.paramId = paramId;
+                        chk.dataset.start = seg.start;
+                        chk.dataset.end = seg.end;
+                        
+                        chk.addEventListener('change', () => {
+                            if (chk.checked) {
+                                item.classList.add('checked');
+                            } else {
+                                item.classList.remove('checked');
+                            }
+                            
+                            // Update Apply to All master checkbox
+                            const chkApplyAll = document.getElementById('chk-apply-all');
+                            if (chkApplyAll) {
+                                const allCheckboxes = document.querySelectorAll('.segment-checkbox');
+                                const allChecked = Array.from(allCheckboxes).every(c => c.checked);
+                                chkApplyAll.checked = allChecked;
+                            }
+                        });
+                        
+                        const labelSpan = document.createElement('span');
+                        const startFrame = Math.round(seg.start);
+                        const endFrame = Math.round(seg.end);
+                        labelSpan.textContent = `${toolName} - ${paramName}: ${startFrame} → ${endFrame}`;
+                        
+                        item.appendChild(chk);
+                        item.appendChild(labelSpan);
+                        listContainer.appendChild(item);
                     });
-                    
-                    const labelSpan = document.createElement('span');
-                    const startFrame = Math.round(seg.start);
-                    const endFrame = Math.round(seg.end);
-                    labelSpan.textContent = `${toolName} - ${paramName}: ${startFrame} → ${endFrame}`;
-                    
-                    item.appendChild(chk);
-                    item.appendChild(labelSpan);
-                    listContainer.appendChild(item);
                 });
-            });
-            
-            // Set master checkbox to checked
-            const chkApplyAll = document.getElementById('chk-apply-all');
-            if (chkApplyAll) {
-                chkApplyAll.checked = true;
+                
+                // Set master checkbox to checked
+                const chkApplyAll = document.getElementById('chk-apply-all');
+                if (chkApplyAll) {
+                    chkApplyAll.checked = true;
+                }
+            } else {
+                listContainer.innerHTML = '<div class="no-segments-msg">No active keyframe segments found. Click Sync Node to load.</div>';
             }
         } else {
-            listContainer.innerHTML = '<div class="no-segments-msg">No active keyframe segments. Click Sync Node to load.</div>';
+            const errMsg = response && response.message ? response.message : "Failed to connect to Resolve.";
+            listContainer.innerHTML = `<div class="no-segments-msg error-text">${errMsg}</div>`;
         }
     } catch (err) {
         console.error("Error syncing segments:", err);
-        listContainer.innerHTML = '<div class="no-segments-msg">Error syncing segments from Resolve.</div>';
+        listContainer.innerHTML = '<div class="no-segments-msg error-text">Error syncing segments from Resolve.</div>';
+    }
+}
+
+// Background Status Polling & UI Sync
+let statusPollInterval = null;
+let lastDetectedClipId = '';
+
+function startStatusPolling() {
+    if (statusPollInterval) clearInterval(statusPollInterval);
+    
+    statusPollInterval = setInterval(async () => {
+        try {
+            const status = await window.flowStudioAPI.pollStatus();
+            
+            if (status && status.status === 'success') {
+                const page = status.page || '';
+                const clipName = status.clip_name;
+                const hasFusion = status.has_fusion_comp;
+                
+                if (page.toLowerCase() === 'edit') {
+                    const clipId = clipName ? `${clipName}_${hasFusion}` : 'none';
+                    updateClipStatusUI('edit', clipName, hasFusion);
+                    
+                    // If the selected clip changed on Edit page, auto sync keyframe segments list
+                    if (clipId !== lastDetectedClipId) {
+                        lastDetectedClipId = clipId;
+                        syncSegments();
+                    }
+                } else if (page.toLowerCase() === 'fusion') {
+                    updateClipStatusUI('fusion');
+                    lastDetectedClipId = '';
+                } else {
+                    updateClipStatusUI('other', null, false, page);
+                    lastDetectedClipId = '';
+                }
+            } else {
+                updateClipStatusUI('disconnected');
+                lastDetectedClipId = '';
+            }
+        } catch (e) {
+            updateClipStatusUI('disconnected');
+            lastDetectedClipId = '';
+        }
+    }, 1500); // Poll status every 1.5 seconds
+}
+
+function updateClipStatusUI(state, clipName = null, hasFusion = false, rawPageName = '') {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (!dot || !text) return;
+    
+    dot.className = 'status-dot';
+    
+    if (state === 'edit') {
+        dot.classList.add('active');
+        if (clipName) {
+            if (hasFusion) {
+                text.innerHTML = `Edit Page: Clip <strong>${clipName}</strong>`;
+            } else {
+                text.innerHTML = `Edit Page: Clip <strong>${clipName}</strong> (No keyframes. Add keyframes to a Fusion clip/effect first)`;
+            }
+        } else {
+            text.innerHTML = `Edit Page: <em>No clip under playhead</em>`;
+        }
+    } else if (state === 'fusion') {
+        dot.classList.add('active');
+        text.innerHTML = `Connected: <strong>Fusion Page</strong>`;
+    } else if (state === 'other') {
+        dot.classList.add('idle');
+        const displayPage = rawPageName ? `${rawPageName.charAt(0).toUpperCase() + rawPageName.slice(1)} Page` : 'Resolve';
+        text.innerHTML = `Resolve Active: <strong>${displayPage}</strong> (Switch to Edit/Fusion)`;
+    } else {
+        dot.classList.add('idle');
+        text.innerHTML = `Resolve: <em>Disconnected</em>`;
+    }
+}
+
+// Quick Animations Event Listeners & Trigger Logic
+function initQuickAnimateEvents() {
+    const btnZoom = document.getElementById('btn-quick-zoom');
+    const btnPos = document.getElementById('btn-quick-pos');
+    const btnRot = document.getElementById('btn-quick-rot');
+    
+    if (btnZoom) {
+        btnZoom.addEventListener('click', async () => {
+            const v1 = parseFloat(document.getElementById('zoom-v1').value);
+            const v2 = parseFloat(document.getElementById('zoom-v2').value);
+            const dur = parseFloat(document.getElementById('zoom-dur').value) || 0;
+            await triggerQuickAnimate('zoom', v1, v2, dur);
+        });
+    }
+    
+    if (btnPos) {
+        btnPos.addEventListener('click', async () => {
+            const v1 = parseFloat(document.getElementById('pos-v1').value);
+            const v2 = parseFloat(document.getElementById('pos-v2').value);
+            const dur = parseFloat(document.getElementById('pos-dur').value) || 0;
+            await triggerQuickAnimate('position', v1, v2, dur);
+        });
+    }
+    
+    if (btnRot) {
+        btnRot.addEventListener('click', async () => {
+            const v1 = parseFloat(document.getElementById('rot-v1').value);
+            const v2 = parseFloat(document.getElementById('rot-v2').value);
+            const dur = parseFloat(document.getElementById('rot-dur').value) || 0;
+            await triggerQuickAnimate('rotation', v1, v2, dur);
+        });
+    }
+}
+
+async function triggerQuickAnimate(type, v1, v2, dur) {
+    if (isNaN(v1) || isNaN(v2)) {
+        showToast("Please enter valid start and end numbers.", true);
+        return;
+    }
+    
+    showToast(`Creating quick ${type} animation...`);
+    
+    try {
+        let presetName = null;
+        let bezierParams = null;
+        
+        // Find if a preset card is selected
+        const cards = document.querySelectorAll('.preset-card');
+        let hasSelectedCard = false;
+        cards.forEach(card => {
+            if (card.classList.contains('selected')) {
+                presetName = card.getAttribute('data-preset');
+                hasSelectedCard = true;
+            }
+        });
+        
+        if (!hasSelectedCard) {
+            // Fallback to active editor curve if no card selected
+            bezierParams = `${p1.x.toFixed(2)},${p1.y.toFixed(2)},${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        
+        const response = await window.flowStudioAPI.quickAnimate(type, v1, v2, dur, presetName, bezierParams);
+        
+        if (response && response.status === 'success') {
+            showToast(response.message);
+            // Instantly sync segments to show the newly animated parameter
+            await syncSegments();
+        } else {
+            const msg = response && response.message ? response.message : "Failed to create quick animation.";
+            showToast(msg, true);
+        }
+    } catch (err) {
+        console.error("Quick animate error:", err);
+        showToast("Failed to connect to Resolve.", true);
     }
 }

@@ -45,6 +45,57 @@ PRESETS = {
     "dramatic_movement": (0.7, 0.0, 0.1, 1.0)
 }
 
+def get_clip_under_playhead(timeline, project):
+    current_tc = timeline.GetCurrentTimecode()
+    if not current_tc:
+        return None
+        
+    # Get frame rate
+    fps_str = timeline.GetSetting("timelineFrameRate")
+    if not fps_str and project:
+        fps_str = project.GetSetting("timelineFrameRate")
+    if not fps_str:
+        fps_str = "24"
+        
+    try:
+        fps = float(fps_str)
+    except:
+        fps = 24.0
+        
+    # Convert playhead timecode to absolute frames
+    parts = current_tc.replace(";", ":").split(":")
+    if len(parts) != 4:
+        return None
+    h, m, s, f = map(int, parts)
+    calc_fps = round(fps)
+    playhead_frame = (h * 3600 * calc_fps) + (m * 60 * calc_fps) + (s * calc_fps) + f
+    
+    # Search all video tracks from highest track index down to 1
+    track_count = timeline.GetTrackCount("video")
+    for track_idx in range(track_count, 0, -1):
+        items = timeline.GetItemListInTrack("video", track_idx)
+        if not items:
+            continue
+            
+        items_list = list(items.values()) if isinstance(items, dict) else list(items)
+        for item in items_list:
+            start = item.GetStart()
+            end = item.GetEnd()
+            if start <= playhead_frame < end:
+                return item
+                
+    return None
+
+def write_diagnostics(diag_info):
+    try:
+        config_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Config")
+        os.makedirs(config_dir, exist_ok=True)
+        diag_path = os.path.join(config_dir, "diagnostic_log.json")
+        with open(diag_path, "w", encoding="utf-8") as f:
+            json.dump(diag_info, f, indent=2)
+    except:
+        pass
+
 def get_current_comp():
     if not module_imported:
         raise Exception("Could not import DaVinciResolveScript module. Make sure python scripting modules are installed.")
@@ -53,12 +104,67 @@ def get_current_comp():
     if not resolve:
         raise Exception("Could not connect to DaVinci Resolve. Please make sure DaVinci Resolve is running and External Scripting is enabled in Preferences.")
     
-    # 1. Try Fusion page first
-    fusion = resolve.Fusion()
-    if fusion:
-        comp = fusion.CurrentComp
-        if comp:
-            return comp
+    diag_info = {}
+    
+    # Helper to dump tools
+    def dump_tools_to_diag(comp_obj):
+        try:
+            tools_info = []
+            tools = comp_obj.GetToolList(False)
+            if tools:
+                tools_list = list(tools.values()) if isinstance(tools, dict) else list(tools)
+                for t in tools_list:
+                    inputs_info = []
+                    inputs = t.GetInputList()
+                    input_list = list(inputs.values()) if isinstance(inputs, dict) else list(inputs)
+                    for inp in input_list:
+                        conn = inp.GetConnectedOutput()
+                        if conn:
+                            mod = conn.GetTool()
+                            reg_id = mod.GetAttrs().get("TOOLS_RegID") if mod else "N/A"
+                            inputs_info.append({
+                                "name": inp.Name,
+                                "id": inp.ID or getattr(inp, "ID", "N/A"),
+                                "connected_to": mod.Name if mod else "N/A",
+                                "modifier_reg_id": reg_id
+                            })
+                    tools_info.append({
+                        "name": t.Name,
+                        "id": t.ID,
+                        "reg_id": t.GetAttrs().get("TOOLS_RegID") if hasattr(t, "GetAttrs") else "N/A",
+                        "inputs": inputs_info
+                    })
+            diag_info["tools"] = tools_info
+        except Exception as ex_t:
+            diag_info["tools_error"] = str(ex_t)
+
+    current_page = ""
+    try:
+        current_page = resolve.GetCurrentPage()
+        diag_info["current_page"] = current_page
+    except Exception as e:
+        diag_info["current_page_error"] = str(e)
+        
+    # 1. Try Fusion page first ONLY if we are actually on the Fusion page
+    if current_page.lower() == "fusion":
+        try:
+            fusion = resolve.Fusion()
+            if fusion:
+                comp = fusion.CurrentComp
+                if comp:
+                    diag_info["page"] = "Fusion"
+                    comp_name = "N/A"
+                    if hasattr(comp, "GetName") and callable(getattr(comp, "GetName", None)):
+                        try:
+                            comp_name = comp.GetName()
+                        except:
+                            pass
+                    diag_info["comp_name"] = comp_name
+                    dump_tools_to_diag(comp)
+                    write_diagnostics(diag_info)
+                    return comp
+        except Exception as e:
+            diag_info["fusion_page_error"] = str(e)
             
     # 2. Try Edit page timeline item playhead fallback
     try:
@@ -67,18 +173,151 @@ def get_current_comp():
         if project:
             timeline = project.GetCurrentTimeline()
             if timeline:
+                diag_info["timeline_name"] = timeline.GetName()
+                current_tc = timeline.GetCurrentTimecode()
+                diag_info["current_tc"] = current_tc
+                
+                # Get frame rate
+                fps_str = timeline.GetSetting("timelineFrameRate")
+                if not fps_str and project:
+                    fps_str = project.GetSetting("timelineFrameRate")
+                diag_info["fps_str"] = fps_str
+                
+                fps = 24.0
+                if fps_str:
+                    try:
+                        fps = float(fps_str)
+                    except:
+                        pass
+                diag_info["fps"] = fps
+                
+                playhead_frame = None
+                if current_tc:
+                    parts = current_tc.replace(";", ":").split(":")
+                    if len(parts) == 4:
+                        h, m, s, f = map(int, parts)
+                        calc_fps = round(fps)
+                        playhead_frame = (h * 3600 * calc_fps) + (m * 60 * calc_fps) + (s * calc_fps) + f
+                        diag_info["playhead_frame"] = playhead_frame
+                
                 clip = timeline.GetCurrentVideoItem()
                 if clip:
-                    comp_count = clip.GetFusionCompCount()
+                    diag_info["current_video_item"] = clip.GetName()
+                else:
+                    diag_info["current_video_item"] = "None"
+                    
+                # Track items log
+                tracks_log = []
+                track_count = timeline.GetTrackCount("video")
+                diag_info["track_count"] = track_count
+                
+                found_clip = None
+                for track_idx in range(track_count, 0, -1):
+                    items = timeline.GetItemListInTrack("video", track_idx)
+                    items_info = []
+                    if items:
+                        items_list = list(items.values()) if isinstance(items, dict) else list(items)
+                        for item in items_list:
+                            start = item.GetStart()
+                            end = item.GetEnd()
+                            items_info.append({
+                                "name": item.GetName(),
+                                "start": start,
+                                "end": end
+                            })
+                            if playhead_frame is not None and start <= playhead_frame < end:
+                                if not found_clip:
+                                    found_clip = item
+                    tracks_log.append({
+                        "track_index": track_idx,
+                        "items": items_info
+                    })
+                diag_info["tracks"] = tracks_log
+                
+                clip = clip or found_clip
+                if clip:
+                    diag_info["clip_name"] = clip.GetName()
+                    diag_info["clip_type"] = clip.GetAttrs().get("Type") if hasattr(clip, "GetAttrs") else "N/A"
+                    
+                    try:
+                        comp_count = clip.GetFusionCompCount()
+                        diag_info["comp_count_before"] = comp_count
+                        
+                        if comp_count == 0:
+                            # Try to programmatically add a Fusion composition to the timeline item
+                            new_comp = clip.AddFusionComp()
+                            if new_comp:
+                                diag_info["added_comp"] = "Success"
+                            else:
+                                diag_info["added_comp"] = "Returned None"
+                            comp_count = clip.GetFusionCompCount()
+                            diag_info["comp_count_after"] = comp_count
+                        else:
+                            diag_info["comp_count_after"] = comp_count
+                    except Exception as ex:
+                        diag_info["comp_error"] = str(ex)
+                        comp_count = 0
+                    
                     if comp_count > 0:
                         comp = clip.GetFusionCompByIndex(1)
                         if comp:
+                            diag_info["page"] = "Edit"
+                            comp_name = "N/A"
+                            if hasattr(comp, "GetName") and callable(getattr(comp, "GetName", None)):
+                                try:
+                                    comp_name = comp.GetName()
+                                except:
+                                    pass
+                            diag_info["comp_name"] = comp_name
+                            dump_tools_to_diag(comp)
+                            write_diagnostics(diag_info)
                             return comp
+                else:
+                    diag_info["clip_under_playhead"] = "None found"
+            else:
+                diag_info["timeline"] = "None found"
+        else:
+            diag_info["project"] = "None found"
     except Exception as e:
-        # Silently fall through to generic error if Edit page checks fail
-        pass
+        import traceback
+        diag_info["error"] = str(e)
+        diag_info["traceback"] = traceback.format_exc()
         
+    write_diagnostics(diag_info)
     raise Exception("No active Fusion composition found. Please make sure you are on the Fusion page with an active clip, or on the Edit page with the playhead over a clip containing a Fusion composition.")
+
+
+def find_animated_inputs_recursive(tool, parent_tool=None, input_path="", current_depth=0, max_depth=2):
+    if current_depth > max_depth:
+        return []
+        
+    found = []
+    inputs = tool.GetInputList()
+    input_list = list(inputs.values()) if isinstance(inputs, dict) else list(inputs)
+    
+    for inp in input_list:
+        connected = inp.GetConnectedOutput()
+        if connected:
+            mod = connected.GetTool()
+            if mod:
+                reg_id = mod.GetAttrs().get("TOOLS_RegID")
+                # Format unique path identifier and display name
+                path_prefix = f"{tool.Name}.{inp.Name}" if not input_path else f"{input_path}->{inp.Name}"
+                
+                if reg_id == "BezierSpline":
+                    display_name = f"{parent_tool.Name} ({inp.Name})" if parent_tool else f"{tool.Name} - {inp.Name}"
+                    found.append((parent_tool or tool, inp, mod, path_prefix, display_name))
+                else:
+                    sub_found = find_animated_inputs_recursive(
+                        mod, 
+                        parent_tool=parent_tool or tool, 
+                        input_path=path_prefix, 
+                        current_depth=current_depth + 1, 
+                        max_depth=max_depth
+                    )
+                    found.extend(sub_found)
+                    
+    return found
 
 def get_animated_inputs(comp):
     selected_tools = comp.GetToolList(True)
@@ -94,15 +333,7 @@ def get_animated_inputs(comp):
     tools_list = list(selected_tools.values()) if isinstance(selected_tools, dict) else list(selected_tools)
     
     for tool in tools_list:
-        inputs = tool.GetInputList()
-        input_list = list(inputs.values()) if isinstance(inputs, dict) else list(inputs)
-        
-        for inp in input_list:
-            connected = inp.GetConnectedOutput()
-            if connected:
-                mod = connected.GetTool()
-                if mod and mod.GetAttrs().get("TOOLS_RegID") == "BezierSpline":
-                    animated_inputs.append((tool, inp, mod))
+        animated_inputs.extend(find_animated_inputs_recursive(tool))
                     
     return animated_inputs
 
@@ -214,7 +445,7 @@ def action_get_segments(comp):
         return []
         
     result_segments = []
-    for tool, inp, modifier in animated_inputs:
+    for tool, inp, modifier, param_id, display_name in animated_inputs:
         kfs = modifier.GetKeyFrames()
         if not kfs or len(kfs) < 2:
             continue
@@ -231,8 +462,8 @@ def action_get_segments(comp):
             
         result_segments.append({
             "tool_name": tool.Name,
-            "param_id": get_input_id(inp),
-            "param_name": inp.Name,
+            "param_id": param_id,
+            "param_name": display_name,
             "segments": segments
         })
         
@@ -243,7 +474,7 @@ def action_copy(comp):
     if not animated_inputs:
         raise Exception("No animated parameters found. Select a node with animated parameters to copy.")
         
-    tool, inp, modifier = animated_inputs[0]
+    tool, inp, modifier, param_id, display_name = animated_inputs[0]
     kfs = modifier.GetKeyFrames()
     
     sorted_times = sorted(list(kfs.keys()))
@@ -301,7 +532,7 @@ def action_copy(comp):
     with open(clipboard_path, "w", encoding="utf-8") as f:
         json.dump(segments_data, f, indent=2)
         
-    return f"Copied easing curves from '{inp.Name}' on node '{tool.Name}'."
+    return f"Copied easing curves from '{display_name}'."
 
 def action_paste(comp, selected_segs=None):
     clipboard_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Config", "clipboard.json")
@@ -316,7 +547,7 @@ def action_paste(comp, selected_segs=None):
         raise Exception("No animated parameters found on target node. Enable keyframing on a parameter first.")
         
     pasted_count = 0
-    for tool, inp, modifier in animated_inputs:
+    for tool, inp, modifier, param_id, display_name in animated_inputs:
         kfs = modifier.GetKeyFrames()
         if not kfs or len(kfs) < 2:
             continue
@@ -343,7 +574,7 @@ def action_paste(comp, selected_segs=None):
                 continue
                 
             # Filter selection
-            if not is_segment_selected(tool.Name, get_input_id(inp), t1, t2, selected_segs):
+            if not is_segment_selected(tool.Name, param_id, t1, t2, selected_segs):
                 # Copy original handles if we skip pasting
                 orig_kf1 = kfs[t1]
                 orig_kf2 = kfs[t2]
@@ -389,7 +620,7 @@ def action_reverse(comp, selected_segs=None):
         raise Exception("No animated parameters found. Select a node with animated parameters to reverse.")
         
     reversed_count = 0
-    for tool, inp, modifier in animated_inputs:
+    for tool, inp, modifier, param_id, display_name in animated_inputs:
         kfs = modifier.GetKeyFrames()
         if not kfs or len(kfs) < 2:
             continue
@@ -439,7 +670,7 @@ def action_reverse(comp, selected_segs=None):
             t2_orig = orig_end["time"]
             
             # Check selection
-            if not is_segment_selected(tool.Name, get_input_id(inp), t1, t2, selected_segs):
+            if not is_segment_selected(tool.Name, param_id, t1, t2, selected_segs):
                 # If not selected, keep original values and handles
                 # (reverting values back and copying original handles)
                 new_kfs[t1][1] = orig_data[i]["value"]
@@ -511,7 +742,7 @@ def action_mirror(comp, selected_segs=None):
         raise Exception("No animated parameters found. Select a node with animated parameters to mirror.")
         
     mirrored_count = 0
-    for tool, inp, modifier in animated_inputs:
+    for tool, inp, modifier, param_id, display_name in animated_inputs:
         kfs = modifier.GetKeyFrames()
         if not kfs or len(kfs) < 2:
             continue
@@ -558,7 +789,7 @@ def action_mirror(comp, selected_segs=None):
             t2 = sorted_times[i+1]
             
             # Check selection
-            if not is_segment_selected(tool.Name, get_input_id(inp), t1, t2, selected_segs):
+            if not is_segment_selected(tool.Name, param_id, t1, t2, selected_segs):
                 continue
                 
             # Mirror values
@@ -594,7 +825,7 @@ def action_reset(comp, selected_segs=None):
         raise Exception("No animated parameters found. Select a node with animated parameters to reset.")
         
     reset_count = 0
-    for tool, inp, modifier in animated_inputs:
+    for tool, inp, modifier, param_id, display_name in animated_inputs:
         kfs = modifier.GetKeyFrames()
         if not kfs:
             continue
@@ -618,7 +849,7 @@ def action_reset(comp, selected_segs=None):
             t2 = sorted_times[i+1]
             
             # Check selection
-            if not is_segment_selected(tool.Name, get_input_id(inp), t1, t2, selected_segs):
+            if not is_segment_selected(tool.Name, param_id, t1, t2, selected_segs):
                 continue
                 
             new_kfs[t1]["RH"] = {}
@@ -645,17 +876,146 @@ def action_reset(comp, selected_segs=None):
         
     return f"Reset keyframe interpolation to linear on {reset_count} animated parameter(s)."
 
+def action_quick_animate(comp, anim_type, v1, v2, duration, preset_name, bezier_str):
+    # 1. Look for or create Transform1 node
+    transform = comp.FindTool("Transform1")
+    if not transform:
+        media_out = comp.FindTool("MediaOut1")
+        if media_out:
+            connected_out = media_out.Input.GetConnectedOutput()
+            transform = comp.AddTool("Transform")
+            if transform:
+                transform.SetAttrs({"TOOLS_Name": "Transform1"})
+                if connected_out:
+                    connected_tool = connected_out.GetTool()
+                    if connected_tool and connected_tool.Name != "Transform1":
+                        transform.ConnectInput("Input", connected_tool)
+                        media_out.ConnectInput("Input", transform)
+                else:
+                    media_out.ConnectInput("Input", transform)
+        else:
+            transform = comp.AddTool("Transform")
+            if transform:
+                transform.SetAttrs({"TOOLS_Name": "Transform1"})
+                
+    if not transform:
+        raise Exception("Failed to find or create Transform1 node in composition.")
+        
+    comp_attrs = comp.GetAttrs()
+    start_frame = comp_attrs.get("COMPN_RenderStart", 0.0)
+    end_frame = comp_attrs.get("COMPN_RenderEnd", 100.0)
+    fps = comp_attrs.get("COMPN_FPS", 24.0)
+    
+    anim_end = end_frame
+    if duration is not None and duration > 0:
+        anim_end = start_frame + int(duration * fps)
+        if anim_end > end_frame:
+            anim_end = end_frame
+            
+    modifier = None
+    param_id = ""
+    display_name = ""
+    
+    if anim_type == "zoom":
+        transform.Size = comp.BezierSpline()
+        transform.Size[start_frame] = v1 if v1 is not None else 1.0
+        transform.Size[anim_end] = v2 if v2 is not None else 1.15
+        
+        connected = transform.Size.GetConnectedOutput()
+        if connected:
+            modifier = connected.GetTool()
+        param_id = "Transform1.Size"
+        display_name = "Transform1 (Size)"
+            
+    elif anim_type == "position":
+        transform.Center = comp.XYPath()
+        xypath_mod = transform.Center.GetConnectedOutput().GetTool()
+        if xypath_mod:
+            xypath_mod.X = comp.BezierSpline()
+            
+            x1_val = v1 if v1 is not None else 0.5
+            x2_val = v2 if v2 is not None else 0.7
+            
+            xypath_mod.X[start_frame] = x1_val
+            xypath_mod.X[anim_end] = x2_val
+            
+            connected_x = xypath_mod.X.GetConnectedOutput()
+            if connected_x:
+                modifier = connected_x.GetTool()
+            param_id = "Transform1.Center->X"
+            display_name = "Transform1 (Center) - X"
+            
+    elif anim_type == "rotation":
+        transform.Angle = comp.BezierSpline()
+        transform.Angle[start_frame] = v1 if v1 is not None else 0.0
+        transform.Angle[anim_end] = v2 if v2 is not None else 15.0
+        
+        connected = transform.Angle.GetConnectedOutput()
+        if connected:
+            modifier = connected.GetTool()
+        param_id = "Transform1.Angle"
+        display_name = "Transform1 (Angle)"
+        
+    if not modifier:
+        raise Exception(f"Failed to setup keyframes or modifiers for {anim_type} animation.")
+        
+    x1_curve, y1_curve, x2_curve, y2_curve = 0.0, 0.0, 1.0, 1.0
+    if bezier_str:
+        x1_curve, y1_curve, x2_curve, y2_curve = map(float, bezier_str.split(","))
+    elif preset_name and preset_name in PRESETS:
+        x1_curve, y1_curve, x2_curve, y2_curve = PRESETS[preset_name]
+        
+    apply_easing_curve(modifier, x1_curve, y1_curve, x2_curve, y2_curve, "Transform1", param_id, None)
+    
+    return f"Created {anim_type} animation on 'Transform1' with values {v1} to {v2} and applied preset."
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flow Studio Backend Script")
-    parser.add_argument("--action", required=True, help="Action to perform: get_segments, apply_preset, copy, paste, reverse, mirror, reset")
+    parser.add_argument("--action", required=True, help="Action to perform: get_segments, apply_preset, copy, paste, reverse, mirror, reset, quick_animate")
     parser.add_argument("--preset", help="Built-in preset name")
     parser.add_argument("--bezier", help="Bezier coordinates 'x1,y1,x2,y2'")
     parser.add_argument("--segments", help="JSON string representing selected segments")
+    parser.add_argument("--anim_type", help="Quick animation type: zoom, position, rotation")
+    parser.add_argument("--v1", type=float, help="Start value of quick animation")
+    parser.add_argument("--v2", type=float, help="End value of quick animation")
+    parser.add_argument("--duration", type=float, help="Duration of quick animation in seconds")
     
     args = parser.parse_args()
     result = {"status": "error", "message": "Unknown error occurred"}
     
     try:
+        if args.action == "poll_status":
+            resolve = dvr_script.scriptapp("Resolve")
+            if not resolve:
+                raise Exception("Could not connect to DaVinci Resolve. Please make sure DaVinci Resolve is running and External Scripting is enabled in Preferences.")
+            
+            current_page = resolve.GetCurrentPage()
+            clip_name = None
+            has_fusion_comp = False
+            comp_count = 0
+            
+            if current_page.lower() == "edit":
+                pm = resolve.GetProjectManager()
+                project = pm.GetCurrentProject()
+                if project:
+                    timeline = project.GetCurrentTimeline()
+                    if timeline:
+                        clip = get_clip_under_playhead(timeline, project)
+                        if clip:
+                            clip_name = clip.GetName()
+                            comp_count = clip.GetFusionCompCount()
+                            has_fusion_comp = comp_count > 0
+            
+            result = {
+                "status": "success",
+                "page": current_page,
+                "clip_name": clip_name,
+                "has_fusion_comp": has_fusion_comp,
+                "comp_count": comp_count
+            }
+            print(json.dumps(result))
+            sys.exit(0)
+
         comp = get_current_comp()
         
         # Parse selected segments JSON if present
@@ -691,8 +1051,8 @@ if __name__ == "__main__":
                 raise Exception("No animated parameters found on the selected node. Please add at least two keyframes first.")
                 
             applied_count = 0
-            for tool, inp, modifier in animated_inputs:
-                if apply_easing_curve(modifier, x1, y1, x2, y2, tool.Name, get_input_id(inp), selected_segs):
+            for tool, inp, modifier, param_id, display_name in animated_inputs:
+                if apply_easing_curve(modifier, x1, y1, x2, y2, tool.Name, param_id, selected_segs):
                     applied_count += 1
                     
             if applied_count == 0:
@@ -702,6 +1062,12 @@ if __name__ == "__main__":
                 "status": "success",
                 "message": f"Applied easing curve to {applied_count} parameter(s) successfully."
             }
+            
+        elif args.action == "quick_animate":
+            if not args.anim_type:
+                raise Exception("Missing --anim_type for quick_animate action.")
+            msg = action_quick_animate(comp, args.anim_type, args.v1, args.v2, args.duration, args.preset, args.bezier)
+            result = { "status": "success", "message": msg }
             
         elif args.action == "copy":
             msg = action_copy(comp)

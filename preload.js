@@ -1,6 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron/renderer')
 
 contextBridge.exposeInMainWorld('flowStudioAPI', {
+    pollStatus: () => ipcRenderer.invoke('flow:pollStatus'),
+    quickAnimate: (type, v1, v2, duration, presetName, bezierParams) => ipcRenderer.invoke('flow:quickAnimate', type, v1, v2, duration, presetName, bezierParams),
     applyPreset: (presetName, bezierParams, segments) => ipcRenderer.invoke('flow:applyPreset', presetName, bezierParams, segments),
     copyAnimation: () => ipcRenderer.invoke('flow:copyAnimation'),
     pasteAnimation: (segments) => ipcRenderer.invoke('flow:pasteAnimation', segments),

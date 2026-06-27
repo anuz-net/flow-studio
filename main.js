@@ -170,6 +170,33 @@ function runPythonScript(action, extraArgs = []) {
 // Register IPC handlers
 function registerIPCHandlers() {
     // Keyframe tools
+    ipcMain.handle('flow:pollStatus', async () => {
+        return await runPythonScript('poll_status');
+    });
+
+    ipcMain.handle('flow:quickAnimate', async (event, type, v1, v2, duration, presetName, bezierParams) => {
+        const args = [];
+        if (type) {
+            args.push(`--anim_type "${type}"`);
+        }
+        if (v1 !== undefined && v1 !== null) {
+            args.push(`--v1 ${v1}`);
+        }
+        if (v2 !== undefined && v2 !== null) {
+            args.push(`--v2 ${v2}`);
+        }
+        if (duration !== undefined && duration !== null && duration > 0) {
+            args.push(`--duration ${duration}`);
+        }
+        if (presetName) {
+            args.push(`--preset "${presetName}"`);
+        }
+        if (bezierParams) {
+            args.push(`--bezier "${bezierParams}"`);
+        }
+        return await runPythonScript('quick_animate', args);
+    });
+
     ipcMain.handle('flow:getKeyframeSegments', async () => {
         return await runPythonScript('get_segments');
     });
